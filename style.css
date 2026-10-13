@@ -105,7 +105,7 @@ button { font-family: inherit; }
 }
 
 /* Hero */
-.hero { padding: clamp(64px, 12vw, 140px) 0 clamp(48px, 8vw, 96px); }
+.hero { padding: 8px 0 clamp(48px, 8vw, 96px); }
 .eyebrow {
   font-family: var(--mono); font-size: 13px; text-transform: uppercase;
   letter-spacing: .12em; color: var(--accent); margin-bottom: 24px;
@@ -292,7 +292,7 @@ button { font-family: inherit; }
   position: absolute; inset: 18px; z-index: 20;
   display: grid; place-items: center;
   border-radius: 18px; border: 1px solid rgba(255, 255, 255, .08);
-  background: rgba(10, 12, 18, .97); color: #fff;
+  background: #0A0C12; color: #fff;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
   opacity: 0; visibility: hidden; transform: scale(.97);
   transition: opacity .2s, transform .25s, visibility .2s;
@@ -346,7 +346,7 @@ button { font-family: inherit; }
 /* ==========================================================================
    Страница резюме (стиль «консалтинг»: заголовки-выводы, засечки, выноски)
    ========================================================================== */
-.cv-hero { padding: clamp(44px, 8vw, 96px) 0 clamp(28px, 5vw, 48px); }
+.cv-hero { padding: 8px 0 clamp(28px, 5vw, 48px); }
 .cv-hero h1 {
   font-family: var(--serif); font-weight: 600; letter-spacing: -0.025em; line-height: 1.02;
   font-size: clamp(44px, 7.5vw, 88px);
@@ -466,14 +466,44 @@ button { font-family: inherit; }
   .nav, .footer, .cv-actions { display: none !important; }
   .container { width: 100%; }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .cv-hero { padding: 0 0 16px; }
-  .cv-hero h1 { font-size: 34pt; }
-  .kpis { margin-top: 24px; gap: 16px; }
-  .kpi b { font-size: 28pt; }
-  .cv-section { padding: 18px 0; }
-  .cv-title { font-size: 17pt; margin-bottom: 16px; }
-  .job, .exhibit, .cols3 > div, .principles blockquote, .row { break-inside: avoid; }
-  .job { padding: 16px 0; }
+  /* При печати всегда используем «широкую» вёрстку, а не мобильную */
+  .cv-hero { padding: 0 0 12px; }
+  .cv-hero h1 { font-size: 30pt; }
+  .cv-hero__role { margin-top: 10px; font-size: 12pt; }
+  .cv-hero__lead { margin-top: 10px; font-size: 12pt; }
+  .cv-contacts { margin-top: 12px; font-size: 9.5pt; }
+  .kpis { margin-top: 18px; gap: 14px; grid-template-columns: repeat(4, 1fr); }
+  .kpi b { font-size: 24pt; }
+  .kpi span { font-size: 8.5pt; }
+  .cv-section { padding: 14px 0; }
+  .cv-section__grid { display: block; }
+  .cv-label { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; padding: 0; font-size: 8pt; break-after: avoid; }
+  .cv-label b { display: inline; margin: 0; font-size: 11pt; }
+  .cv-title { font-size: 14pt; margin-bottom: 12px; max-width: none; }
+  .cv-profile { grid-template-columns: 1.4fr 1fr; gap: 20px; }
+  .cv-profile__text p { font-size: 9.5pt; }
+  .facts div { grid-template-columns: 70px 1fr; padding: 6px 0; font-size: 9pt; }
+  .exhibits { display: block; column-count: 2; column-gap: 22px; }
+  .exhibit { margin-bottom: 14px; }
+  .exhibit h3 { font-size: 11.5pt; margin: 6px 0 8px; }
+  .dash { gap: 3px; }
+  .dash li { font-size: 9pt; }
+  .job { grid-template-columns: 100px minmax(0, 1fr); gap: 4px 16px; padding: 12px 0; }
+  .job h3, .job__org { break-after: avoid; }
+  .job h3 { font-size: 11.5pt; }
+  .job--compact h3 { font-size: 10.5pt; }
+  .job__org, .job__sector, .job__stack, .job__meta { font-size: 8.5pt; }
+  .job__cols { grid-template-columns: repeat(3, 1fr); gap: 12px 16px; margin-top: 10px; }
+  .job__stack { margin-top: 8px; }
+  .cols3 { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cols3 h3, .cv-two h3 { font-size: 11.5pt; }
+  .cv-two { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .row { grid-template-columns: 38px 1fr; gap: 10px; padding: 7px 0; font-size: 9pt; }
+  .row span { font-size: 8.5pt; }
+  .principles { grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  .principles blockquote { padding: 10px 0; font-size: 11pt; }
+  .exhibit, .cols3 > div, .principles blockquote, .row, .job { break-inside: avoid; }
+  .cv-title, .cv-label { break-after: avoid; }
   .chips li { border: 1px solid var(--border); }
   a { color: inherit; }
 }

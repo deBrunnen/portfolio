@@ -2,12 +2,11 @@
   'use strict';
 
   /* ==========================================================================
-     ДАННЫЕ ПРОЕКТОВ (окно с подробностями)
+     ДАННЫЕ ПРОЕКТОВ
      Фото лежат в папке img/ и называются project-<номер>-<n>.jpg.
      Количество фото задаётся вторым числом: images: photos(1, 18) — 18 фото у проекта 1.
      Добавили файл — увеличьте число. Первое фото станет обложкой карточки.
      ========================================================================== */
-  // Пути к фото: photos(1, 3) -> ['img/project-1-1.jpg', 'img/project-1-2.jpg', 'img/project-1-3.jpg']
   function photos(id, n) {
     var list = [];
     for (var i = 1; i <= n; i++) list.push('img/project-' + id + '-' + i + '.jpg');
@@ -75,26 +74,38 @@
     }
   };
 
-  /* ========================================================================== */
+  /* ==========================================================================
+     Общее для всех страниц (главная и резюме)
+     ========================================================================== */
+  function byId(id) { return document.getElementById(id); }
 
-  // Год в подвале
-  document.getElementById('year').textContent = new Date().getFullYear();
+  var yearEl = byId('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   // Тема
   var root = document.documentElement;
-  document.getElementById('themeToggle').addEventListener('click', function () {
-    var isDark = root.getAttribute('data-theme') === 'dark' ||
-      (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    var next = isDark ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
-  });
+  var themeBtn = byId('themeToggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var isDark = root.getAttribute('data-theme') === 'dark' ||
+        (!root.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      var next = isDark ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+    });
+  }
 
-  // Тень у навигации при прокрутке
-  var nav = document.getElementById('nav');
-  function onScroll() { nav.classList.toggle('scrolled', window.scrollY > 8); }
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  // Сохранить резюме в PDF (через печать браузера)
+  var printBtn = byId('printBtn');
+  if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+
+  // Линия под навигацией при прокрутке
+  var nav = byId('nav');
+  if (nav) {
+    var onScroll = function () { nav.classList.toggle('scrolled', window.scrollY > 8); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
 
   // Появление элементов при прокрутке
   var items = document.querySelectorAll('.reveal');
@@ -102,26 +113,26 @@
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (e.isIntersecting) {
-          var el = e.target;
-          el.classList.add('visible');
-          io.unobserve(el);
+          var node = e.target;
+          node.classList.add('visible');
+          io.unobserve(node);
           setTimeout(function () {
-            el.style.transitionDelay = '';
-            el.classList.add('done');
+            node.style.transitionDelay = '';
+            node.classList.add('done');
           }, 900);
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    items.forEach(function (el, i) {
-      el.style.transitionDelay = (i % 3) * 60 + 'ms';
-      io.observe(el);
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function (node, i) {
+      node.style.transitionDelay = (i % 3) * 60 + 'ms';
+      io.observe(node);
     });
   } else {
-    items.forEach(function (el) { el.classList.add('visible', 'done'); });
+    items.forEach(function (node) { node.classList.add('visible', 'done'); });
   }
 
   // Фото в контактах: локальный файл -> запасные адреса
-  var portrait = document.getElementById('portrait');
+  var portrait = byId('portrait');
   if (portrait) {
     var fallbacks = (portrait.getAttribute('data-fallbacks') || '').split(' ').filter(Boolean);
     portrait.addEventListener('error', function () {
@@ -129,7 +140,14 @@
     });
   }
 
-  // Обложки карточек (если у проекта есть фото)
+  /* ==========================================================================
+     Только главная: карточки, фильтр, окно проекта, просмотр фото
+     ========================================================================== */
+  var grid = byId('grid');
+  var modal = byId('modal');
+  if (!grid || !modal) return;
+
+  // Обложки карточек
   var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
   cards.forEach(function (card) {
     var p = PROJECTS[card.dataset.id];
@@ -144,8 +162,8 @@
     }
   });
 
-  // Фильтр проектов по технологиям
-  var box = document.getElementById('filters');
+  // Фильтр по технологиям
+  var box = byId('filters');
   var tags = [];
   cards.forEach(function (c) {
     c.dataset.tags.split(',').forEach(function (t) {
@@ -178,26 +196,16 @@
     });
   });
 
-  /* ==========================================================================
-     Окно проекта
-     ========================================================================== */
-  var modal = document.getElementById('modal');
+  /* ---------- Окно проекта ---------- */
   var dialog = modal.querySelector('.modal__dialog');
+  var viewer = byId('viewer');
   var el = {
-    num: document.getElementById('mNum'),
-    title: document.getElementById('mTitle'),
-    text: document.getElementById('mText'),
-    timeline: document.getElementById('mTimeline'),
-    stack: document.getElementById('mStack'),
-    note: document.getElementById('mNote'),
-    link: document.getElementById('mLink'),
-    stage: document.getElementById('gStage'),
-    thumbs: document.getElementById('gThumbs'),
-    count: document.getElementById('gCount'),
-    gPrev: document.getElementById('gPrev'),
-    gNext: document.getElementById('gNext'),
-    mPrev: document.getElementById('mPrev'),
-    mNext: document.getElementById('mNext')
+    num: byId('mNum'), title: byId('mTitle'), text: byId('mText'),
+    timeline: byId('mTimeline'), stack: byId('mStack'), note: byId('mNote'), link: byId('mLink'),
+    stage: byId('gStage'), thumbs: byId('gThumbs'), count: byId('gCount'), hint: byId('gHint'),
+    gPrev: byId('gPrev'), gNext: byId('gNext'), mPrev: byId('mPrev'), mNext: byId('mNext'),
+    vStage: byId('vStage'), vImg: byId('vImg'), vCount: byId('vCount'),
+    vPrev: byId('vPrev'), vNext: byId('vNext'), vClose: byId('vClose')
   };
 
   var current = { id: null, index: 0, images: [] };
@@ -207,8 +215,18 @@
     return cards.filter(function (c) { return !c.classList.contains('hidden'); })
       .map(function (c) { return c.dataset.id; });
   }
-
   function pad(id) { return ('0' + id).slice(-2); }
+  function viewerOpen() { return viewer.classList.contains('open'); }
+
+  function makePlaceholder() {
+    var ph = document.createElement('div');
+    ph.className = 'gallery__placeholder';
+    ph.textContent = pad(current.id);
+    var small = document.createElement('small');
+    small.textContent = 'Фото проекта';
+    ph.appendChild(small);
+    return ph;
+  }
 
   function renderGallery() {
     var imgs = current.images;
@@ -217,27 +235,24 @@
     el.thumbs.textContent = '';
 
     if (!imgs.length) {
-      var ph = document.createElement('div');
-      ph.className = 'gallery__placeholder';
-      ph.textContent = pad(current.id);
-      var small = document.createElement('small');
-      small.textContent = 'Фото проекта';
-      ph.appendChild(small);
-      el.stage.appendChild(ph);
+      el.stage.appendChild(makePlaceholder());
+      el.hint.hidden = true;
     } else {
       var img = document.createElement('img');
       img.className = 'gallery__img';
       img.src = imgs[current.index];
       img.alt = p.title + ' — фото ' + (current.index + 1);
       img.draggable = false;
+      img.tabIndex = 0;
+      img.setAttribute('role', 'button');
+      img.setAttribute('aria-label', 'Развернуть фото ' + (current.index + 1));
       img.addEventListener('error', function () {
         el.stage.textContent = '';
-        var ph2 = document.createElement('div');
-        ph2.className = 'gallery__placeholder';
-        ph2.textContent = pad(current.id);
-        el.stage.appendChild(ph2);
+        el.stage.appendChild(makePlaceholder());
+        el.hint.hidden = true;
       });
       el.stage.appendChild(img);
+      el.hint.hidden = false;
     }
 
     var many = imgs.length > 1;
@@ -257,19 +272,82 @@
         t.alt = '';
         t.loading = 'lazy';
         b.appendChild(t);
-        b.addEventListener('click', function () { current.index = i; renderGallery(); });
+        b.addEventListener('click', function () { goTo(i); });
         el.thumbs.appendChild(b);
       });
     }
   }
 
-  function shiftPhoto(d) {
+  // Показать фото с номером i (по кругу), синхронно в галерее и в развёрнутом просмотре
+  function goTo(i) {
     var n = current.images.length;
-    if (n < 2) return;
-    current.index = (current.index + d + n) % n;
+    if (!n) return;
+    current.index = ((i % n) + n) % n;
     renderGallery();
+    if (viewerOpen()) renderViewer();
+  }
+  function shiftPhoto(d) {
+    if (current.images.length > 1) goTo(current.index + d);
   }
 
+  /* ---------- Развёрнутый просмотр фото ---------- */
+  function renderViewer() {
+    var imgs = current.images;
+    var n = imgs.length;
+    var i = current.index;
+    el.vImg.src = imgs[i];
+    el.vImg.alt = PROJECTS[current.id].title + ' — фото ' + (i + 1);
+    var many = n > 1;
+    el.vPrev.hidden = !many;
+    el.vNext.hidden = !many;
+    el.vCount.hidden = !many;
+    el.vCount.textContent = (i + 1) + ' / ' + n;
+    if (many) {
+      new Image().src = imgs[(i + 1) % n];
+      new Image().src = imgs[(i - 1 + n) % n];
+    }
+  }
+
+  function openViewer() {
+    if (!current.images.length) return;
+    renderViewer();
+    viewer.classList.add('open');
+    viewer.setAttribute('aria-hidden', 'false');
+    el.vClose.focus({ preventScroll: true });
+  }
+
+  function hideViewer() {
+    viewer.classList.remove('open');
+    viewer.setAttribute('aria-hidden', 'true');
+  }
+
+  function closeViewer() {
+    if (!viewerOpen()) return;
+    hideViewer();
+    var g = el.stage.querySelector('.gallery__img');
+    if (g) g.focus({ preventScroll: true });
+  }
+
+  // Клик или Enter/Пробел по фото в галерее -> развернуть
+  el.stage.addEventListener('click', function (e) {
+    if (e.target.classList.contains('gallery__img')) openViewer();
+  });
+  el.stage.addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('gallery__img')) {
+      e.preventDefault();
+      openViewer();
+    }
+  });
+
+  el.vClose.addEventListener('click', closeViewer);
+  el.vPrev.addEventListener('click', function () { shiftPhoto(-1); });
+  el.vNext.addEventListener('click', function () { shiftPhoto(1); });
+  // Клик по самому фото или по тёмному полю вокруг -> свернуть
+  el.vStage.addEventListener('click', function (e) {
+    if (e.target === el.vStage || e.target === el.vImg) closeViewer();
+  });
+
+  /* ---------- Содержимое окна проекта ---------- */
   function fill(id) {
     var p = PROJECTS[id];
     if (!p) return false;
@@ -309,9 +387,9 @@
       el.link.hidden = true;
     }
 
+    hideViewer();
     renderGallery();
-    var scroller = modal.querySelector('.info__scroll');
-    scroller.scrollTop = 0;
+    modal.querySelector('.info__scroll').scrollTop = 0;
     dialog.scrollTop = 0;
     return true;
   }
@@ -329,11 +407,12 @@
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     try { history.replaceState(null, '', '#project-' + id); } catch (e) {}
-    if (!wasOpen) document.getElementById('mClose').focus({ preventScroll: true });
+    if (!wasOpen) byId('mClose').focus({ preventScroll: true });
   }
 
   function closeModal() {
     if (!modal.classList.contains('open')) return;
+    hideViewer();
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('modal-open');
@@ -349,51 +428,65 @@
     openProject(ids[(i + d + ids.length) % ids.length]);
   }
 
-  // Открытие по клику / клавиатуре
-  document.getElementById('grid').addEventListener('click', function (e) {
+  // Открытие карточки по клику и с клавиатуры
+  grid.addEventListener('click', function (e) {
     var card = e.target.closest('.card');
     if (card) openProject(card.dataset.id);
   });
-  document.getElementById('grid').addEventListener('keydown', function (e) {
+  grid.addEventListener('keydown', function (e) {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     var card = e.target.closest('.card');
     if (card) { e.preventDefault(); openProject(card.dataset.id); }
   });
 
-  // Закрытие
-  document.getElementById('mClose').addEventListener('click', closeModal);
+  byId('mClose').addEventListener('click', closeModal);
   modal.addEventListener('mousedown', function (e) { if (e.target === modal) closeModal(); });
 
-  // Навигация
   el.gPrev.addEventListener('click', function () { shiftPhoto(-1); });
   el.gNext.addEventListener('click', function () { shiftPhoto(1); });
   el.mPrev.addEventListener('click', function () { shiftProject(-1); });
   el.mNext.addEventListener('click', function () { shiftProject(1); });
 
-  // Свайп по фото
-  var touchX = null;
-  el.stage.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; }, { passive: true });
-  el.stage.addEventListener('touchend', function (e) {
-    if (touchX === null) return;
-    var dx = e.changedTouches[0].clientX - touchX;
-    touchX = null;
-    if (Math.abs(dx) > 50) shiftPhoto(dx < 0 ? 1 : -1);
-  }, { passive: true });
+  // Свайп по фото (галерея и развёрнутый просмотр)
+  function attachSwipe(node) {
+    var x0 = null;
+    node.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    node.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 50) shiftPhoto(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  }
+  attachSwipe(el.stage);
+  attachSwipe(el.vStage);
 
-  // Клавиатура: Esc, стрелки, удержание фокуса внутри окна
+  // Элементы, на которые можно перейти Tab-ом (с учётом открытого просмотра)
+  function focusables() {
+    var inViewer = viewerOpen();
+    var scope = inViewer ? viewer : dialog;
+    return Array.prototype.slice.call(scope.querySelectorAll('button, a[href], [tabindex="0"]'))
+      .filter(function (n) {
+        return !n.hidden && !n.disabled && n.offsetParent !== null && (inViewer || !viewer.contains(n));
+      });
+  }
+
   document.addEventListener('keydown', function (e) {
     if (!modal.classList.contains('open')) return;
-    if (e.key === 'Escape') { closeModal(); return; }
+    if (e.key === 'Escape') {
+      if (viewerOpen()) closeViewer(); else closeModal();
+      return;
+    }
     if (e.key === 'ArrowLeft') { shiftPhoto(-1); return; }
     if (e.key === 'ArrowRight') { shiftPhoto(1); return; }
     if (e.key === 'Tab') {
-      var f = Array.prototype.slice.call(dialog.querySelectorAll('button, a[href]'))
-        .filter(function (n) { return !n.hidden && n.offsetParent !== null; });
+      var f = focusables();
       if (!f.length) return;
       var first = f[0], last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      var scope = viewerOpen() ? viewer : dialog;
+      if (!scope.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      else if (!dialog.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
     }
   });
 
