@@ -346,7 +346,18 @@ button { font-family: inherit; }
 /* ==========================================================================
    Страница резюме (стиль «консалтинг»: заголовки-выводы, засечки, выноски)
    ========================================================================== */
-.cv-hero { padding: 8px 0 clamp(28px, 5vw, 48px); }
+.cv-hero { position: relative; --photo-w: clamp(150px, 19vw, 230px); padding: 8px 0 clamp(28px, 5vw, 48px); }
+.cv-photo {
+  position: absolute; top: 8px; right: 0; width: var(--photo-w); margin: 0;
+  aspect-ratio: 4 / 5; overflow: hidden; border-radius: 16px;
+  background: var(--accent-soft); border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.cv-photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.cv-hero__main { padding-right: calc(var(--photo-w) + 32px); }
+@media screen and (max-width: 700px) {
+  .cv-photo { position: static; width: 132px; margin: 0 0 22px auto; }
+  .cv-hero__main { padding-right: 0; }
+}
 .cv-hero h1 {
   font-family: var(--serif); font-weight: 600; letter-spacing: -0.025em; line-height: 1.02;
   font-size: clamp(44px, 7.5vw, 88px);
@@ -467,7 +478,9 @@ button { font-family: inherit; }
   .container { width: 100%; }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
   /* При печати всегда используем «широкую» вёрстку, а не мобильную */
-  .cv-hero { padding: 0 0 12px; }
+  .cv-hero { padding: 0 0 12px; --photo-w: 32mm; }
+  .cv-photo { top: 0; border-radius: 3mm; box-shadow: none; }
+  .cv-hero__main { padding-right: calc(32mm + 8mm); }
   .cv-hero h1 { font-size: 30pt; }
   .cv-hero__role { margin-top: 10px; font-size: 12pt; }
   .cv-hero__lead { margin-top: 10px; font-size: 12pt; }
